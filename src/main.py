@@ -1,9 +1,23 @@
 import board
+import numpy as np
+
 if __name__ == '__main__':
     b = board.Board()
-    b.make_move((6, 2, 5, 2))
-    b.make_move((1, 2, 2, 2))
+    b.set_board(np.array([
+        [' ', 'k', ' ', ' '],
+        [' ', ' ', ' ', ' '],
+        [' ', 'K', ' ', ' '],
+        [' ', ' ', ' ', 'R'],
+        [' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' '],
+        [' ', ' ', ' ', ' '],
+        [' ', ' ', 'b', ' '],
+    ]))
 
-    print(b)
-    print(b.legal_moves())
-    print(b.legal_moves_piece(7, 3))
+    while True:
+        print(b)
+        print(b.legal_moves())
+        r, c, R, C = (int(i) for i in input().split())
+        b.make_move((r, c, R, C))
+    
+    

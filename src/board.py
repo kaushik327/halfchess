@@ -1,4 +1,5 @@
 from itertools import chain, product
+from copy import deepcopy
 import numpy as np
 
 class Board():
@@ -19,19 +20,17 @@ class Board():
         ])
         self.white_to_move = True
 
+    def set_board(self, board, white_to_move = True):
+        self.board = board
+        self.white_to_move = white_to_move
+
     def __repr__(self):
         return np.array2string(self.board)
 
     def __is_valid(self, row: int, col: int):
         return 0 <= row < 8 and 0 <= col < 4
 
-    def make_move(self, move: tuple[int, int, int, int]):
-        r, c, R, C = move
-        self.board[R, C] = self.board[r, c]
-        self.board[r, c] = ' '
-        self.white_to_move = not self.white_to_move
-
-    def legal_moves(self):
+    def legal_moves(self, post = False):
         moves = []
         if self.white_to_move:
             for r, c in product(range(8), range(4)):
@@ -57,32 +56,60 @@ class Board():
                     moves += self.__legal_moves_bishop(r, c, False)
                 elif self.board[r, c] == 'k':
                     moves += self.__legal_moves_king(r, c, False)
-        return moves
+        return moves if post else [m for m in moves if not self.__in_check_after_move(m)]
 
-    def legal_moves_piece(self, row: int, col: int):
+    def legal_moves_piece(self, row: int, col: int, post = False):
+        moves = []
         if self.white_to_move:
             if self.board[row, col] == 'P':
-                return self.__legal_moves_pawn(row, col, True)
-            if self.board[row, col] == 'N':
-                return self.__legal_moves_knight(row, col, True)
-            if self.board[row, col] == 'R':
-                return self.__legal_moves_rook(row, col, True)
-            if self.board[row, col] == 'B':
-                return self.__legal_moves_bishop(row, col, True)
-            if self.board[row, col] == 'K':
-                return self.__legal_moves_king(row, col, True)
+                moves = self.__legal_moves_pawn(row, col, True)
+            elif self.board[row, col] == 'N':
+                moves = self.__legal_moves_knight(row, col, True)
+            elif self.board[row, col] == 'R':
+                moves = self.__legal_moves_rook(row, col, True)
+            elif self.board[row, col] == 'B':
+                moves = self.__legal_moves_bishop(row, col, True)
+            elif self.board[row, col] == 'K':
+                moves = self.__legal_moves_king(row, col, True)
         else:
             if self.board[row, col] == 'p':
-                return self.__legal_moves_pawn(row, col, False)
-            if self.board[row, col] == 'n':
-                return self.__legal_moves_knight(row, col, False)
-            if self.board[row, col] == 'r':
-                return self.__legal_moves_rook(row, col, False)
-            if self.board[row, col] == 'b':
-                return self.__legal_moves_bishop(row, col, False)
-            if self.board[row, col] == 'k':
-                return self.__legal_moves_king(row, col, False)
-        return []
+                moves = self.__legal_moves_pawn(row, col, False)
+            elif self.board[row, col] == 'n':
+                moves = self.__legal_moves_knight(row, col, False)
+            elif self.board[row, col] == 'r':
+                moves = self.__legal_moves_rook(row, col, False)
+            elif self.board[row, col] == 'b':
+                moves = self.__legal_moves_bishop(row, col, False)
+            elif self.board[row, col] == 'k':
+                moves = self.__legal_moves_king(row, col, False)
+        return moves if post else [m for m in moves if not self.__in_check_after_move(m)]
+
+    def make_move(self, move: tuple[int, int, int, int]):
+        r, c, R, C = move
+        self.board[R, C] = self.board[r, c]
+        self.board[r, c] = ' '
+        self.white_to_move = not self.white_to_move
+
+    def __in_check(self):
+        return self.__in_check_after_move((0, 0, 0, 0))
+
+    def result(self):
+        if self.legal_moves() != []:
+            # TODO: the game isn't over; throw an exception?
+            return 2
+        if not self.__in_check():
+            return 0
+        if self.white_to_move:
+            return -1
+        return 1
+
+    def __in_check_after_move(self, move: tuple[int, int, int, int]):
+        post_board = deepcopy(self)
+        post_board.make_move(move)
+        for a, b, A, B in post_board.legal_moves(post = True):
+            if post_board.board[A, B] == ('k' if post_board.white_to_move else 'K'):
+                return True
+        return False
 
     def __legal_moves_pawn(self, row: int, col: int, is_white: bool):
         if row == 0 and is_white or row == 7 and not is_white:
