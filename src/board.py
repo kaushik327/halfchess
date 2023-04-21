@@ -25,7 +25,7 @@ class Board():
         self.white_to_move = white_to_move
 
     def __repr__(self):
-        return np.array2string(self.board)
+        return '\n'.join('|' + '|'.join(row) + '|' for row in self.board)
 
     def __is_valid(self, row: int, col: int):
         return 0 <= row < 8 and 0 <= col < 4
@@ -106,7 +106,7 @@ class Board():
     def __in_check_after_move(self, move: tuple[int, int, int, int]):
         post_board = deepcopy(self)
         post_board.make_move(move)
-        for a, b, A, B in post_board.legal_moves(post = True):
+        for _, _, A, B in post_board.legal_moves(post = True):
             if post_board.board[A, B] == ('k' if post_board.white_to_move else 'K'):
                 return True
         return False
@@ -208,4 +208,3 @@ class Board():
                 break
             i += 1
         return moves
-

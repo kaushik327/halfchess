@@ -4,20 +4,22 @@ import numpy as np
 if __name__ == '__main__':
     b = board.Board()
     b.set_board(np.array([
-        [' ', 'k', ' ', ' '],
-        [' ', ' ', ' ', ' '],
+        [' ', ' ', 'k', ' '],
+        [' ', ' ', 'P', ' '],
         [' ', 'K', ' ', ' '],
-        [' ', ' ', ' ', 'R'],
         [' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' '],
-        [' ', ' ', 'b', ' '],
+        [' ', ' ', ' ', ' '],
+        [' ', ' ', 'B', ' '],
     ]))
 
-    while True:
+    while lm := b.legal_moves():
         print(b)
-        print(b.legal_moves())
+        print(lm)
         r, c, R, C = (int(i) for i in input().split())
         b.make_move((r, c, R, C))
-    
+    print(b)
+    print('Result:', b.result())
+
     
