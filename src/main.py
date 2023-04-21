@@ -1,9 +1,9 @@
-import board
+"""Modules providing implementation of half-chess board, with legal moves and results."""
 import numpy as np
+import board
 
 if __name__ == '__main__':
-    b = board.Board()
-    b.set_board(np.array([
+    b = board.Board(np.array([
         [' ', ' ', 'k', ' '],
         [' ', ' ', 'P', ' '],
         [' ', 'K', ' ', ' '],
@@ -12,14 +12,13 @@ if __name__ == '__main__':
         [' ', ' ', ' ', ' '],
         [' ', ' ', ' ', ' '],
         [' ', ' ', 'B', ' '],
-    ]))
+    ]), white_to_move=True)
 
-    while lm := b.legal_moves():
+    while b.result() == 2:
         print(b)
-        print(lm)
+        print('Material:', b.material_advantage())
+        print(b.legal_moves)
         r, c, R, C = (int(i) for i in input().split())
-        b.make_move((r, c, R, C))
+        b = b.make_move((r, c, R, C))
     print(b)
     print('Result:', b.result())
-
-    
