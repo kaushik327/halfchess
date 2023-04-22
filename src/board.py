@@ -38,7 +38,6 @@ class Board():
         self.white_to_move = white_to_move
 
         self.legal_moves = self.__get_legal_moves(ignore_pins = future)
-        # TODO: cache legal moves so it doesnt get called over and over again
 
     def __repr__(self):
         return '\n'.join('|' + '|'.join(row) + '|' for row in self.board) + '\n'
@@ -108,7 +107,6 @@ class Board():
         if self.legal_moves != []:
             if self.__draw_by_insufficient_material():
                 return 0
-            # TODO: the game isn't over; throw an exception?
             return None
         if not self.__in_check():
             return 0
