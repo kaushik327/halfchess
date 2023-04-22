@@ -3,16 +3,7 @@ import numpy as np
 import board
 
 if __name__ == '__main__':
-    b = board.Board(np.array([
-        [' ', ' ', 'k', ' '],
-        [' ', ' ', 'P', ' '],
-        [' ', 'K', ' ', ' '],
-        [' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' '],
-        [' ', ' ', ' ', ' '],
-        [' ', ' ', 'B', ' '],
-    ]), white_to_move=True)
+    b = board.Board()
 
     while b.result() is None:
         print(b)
