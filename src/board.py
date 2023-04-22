@@ -109,7 +109,7 @@ class Board():
             if self.__draw_by_insufficient_material():
                 return 0
             # TODO: the game isn't over; throw an exception?
-            return 2
+            return None
         if not self.__in_check():
             return 0
         if self.white_to_move:

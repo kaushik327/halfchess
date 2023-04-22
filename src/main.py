@@ -14,7 +14,7 @@ if __name__ == '__main__':
         [' ', ' ', 'B', ' '],
     ]), white_to_move=True)
 
-    while b.result() == 2:
+    while b.result() is None:
         print(b)
         print('Material:', b.material_advantage())
         print(b.legal_moves)
