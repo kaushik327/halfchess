@@ -1,5 +1,4 @@
 """Modules providing implementation of half-chess board, with legal moves and results."""
-import numpy as np
 import board
 
 if __name__ == '__main__':

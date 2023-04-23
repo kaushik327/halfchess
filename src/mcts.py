@@ -1,22 +1,18 @@
 # https://  youtu.be/XnU-E7NQKX0?t=1068
 
-import random
-import numpy as np
 import math
-
+import numpy as np
 import board
 import treevis
-
-NUM_SIMULATIONS = 5
 
 def ucb_score(parent, child):
     prior_score = child.prior * math.sqrt(parent.visits) / (child.visits + 1)
     value_score = 0 if child.visits == 0 else (child.value / child.visits)
-    return value_score * prior_score
+    return value_score + prior_score
 
 def dummy_model_predict(state: board.Board):
     """Returns value and dictionary of moves to action probabilities."""
-    value_head = 0.5
+    value_head = 0
     num_moves = len(state.legal_moves)
     policy_head = {lm: 1/num_moves for lm in state.legal_moves}
     return value_head, policy_head
@@ -50,11 +46,24 @@ class Node:
 # initialize root
 root = Node(
     prior = 0,
-    state = board.Board(white_to_move=True)
+    state = board.Board(
+        board=np.array([
+            [' ', ' ', ' ', 'k'],
+            [' ', ' ', ' ', ' '],
+            [' ', ' ', 'K', ' '],
+            [' ', ' ', ' ', ' '],
+            [' ', ' ', 'R', ' '],
+            [' ', ' ', ' ', ' '],
+            [' ', 'b', ' ', ' '],
+            [' ', ' ', ' ', ' '],
+        ]),
+        white_to_move=True)
 )
 # expand the root
 value, action_probs = dummy_model_predict(root.state)
 root.expand(action_probs=action_probs)
+
+NUM_SIMULATIONS = 8
 
 for _ in range(NUM_SIMULATIONS):
     node = root

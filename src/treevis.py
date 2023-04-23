@@ -1,3 +1,4 @@
+
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -12,7 +13,7 @@ def vis(root):
             G.add_edge(curr, child, action=action)
             queue.append(child)
 
-    pos = nx.nx_agraph.graphviz_layout(G, prog='dot')
+    pos = nx.nx_agraph.graphviz_layout(G, prog='twopi')
     nx.draw(G, pos)
     nx.draw_networkx_edge_labels(G, pos, nx.get_edge_attributes(G, 'action'))
 
