@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # import mcts
 
-def vis(root):
+def vis(root, filename=None):
     G = nx.DiGraph()
     queue = [root]
     while queue:
@@ -13,8 +13,12 @@ def vis(root):
             G.add_edge(curr, child, action=action)
             queue.append(child)
 
+    plt.figure(figsize=(12, 12))
     pos = nx.nx_agraph.graphviz_layout(G, prog='twopi')
     nx.draw(G, pos)
     nx.draw_networkx_edge_labels(G, pos, nx.get_edge_attributes(G, 'action'))
 
-    plt.show()
+    if filename is None:
+        plt.show()
+    else:
+        plt.savefig(filename, format='PNG')

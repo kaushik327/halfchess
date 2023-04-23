@@ -1,6 +1,5 @@
-# https://  youtu.be/XnU-E7NQKX0?t=1068
-
 import math
+import sys
 import numpy as np
 import board
 import treevis
@@ -42,48 +41,49 @@ class Node:
             if score >= max_score:
                 max_score, selected_action, selected_child = score, action, child
         return selected_action, selected_child
-    
-# initialize root
-root = Node(
-    prior = 0,
-    state = board.Board(
-        board=np.array([
-            [' ', ' ', ' ', 'k'],
-            [' ', ' ', ' ', ' '],
-            [' ', ' ', 'K', ' '],
-            [' ', ' ', ' ', ' '],
-            [' ', ' ', 'R', ' '],
-            [' ', ' ', ' ', ' '],
-            [' ', 'b', ' ', ' '],
-            [' ', ' ', ' ', ' '],
-        ]),
-        white_to_move=True)
-)
-# expand the root
-value, action_probs = dummy_model_predict(root.state)
-root.expand(action_probs=action_probs)
 
-NUM_SIMULATIONS = 8
+if __name__ == '__main__':
 
-for _ in range(NUM_SIMULATIONS):
-    node = root
-    search_path = [node]
-    while node.children:
-        action, node = node.select_child()
-        search_path.append(node)
-    value = node.state.result()
-    if value is None:
-        # game isn't over
-        value, action_probs = dummy_model_predict(node.state)
-        node.expand(action_probs=action_probs)
+    NUM_SIMULATIONS = 13 if len(sys.argv) == 1 else int(sys.argv[1])
 
-    for node in search_path:
-        node.value += value
-        node.visits += 1
+    # initialize root
+    root = Node(
+        prior = 0,
+        state = board.Board(
+            board=np.array([
+                [' ', ' ', 'k', ' '],
+                [' ', ' ', ' ', ' '],
+                [' ', ' ', 'K', ' '],
+                [' ', ' ', ' ', ' '],
+                ['R', ' ', ' ', ' '],
+                [' ', ' ', ' ', ' '],
+                [' ', ' ', ' ', ' '],
+                [' ', ' ', ' ', ' '],
+            ]),
+            white_to_move=True)
+    )
+    # expand the root
+    value, action_probs = dummy_model_predict(root.state)
+    root.expand(action_probs=action_probs)
 
+    # run simulations
+    for _ in range(NUM_SIMULATIONS):
+        node = root
+        search_path = [node]
+        while node.children:
+            action, node = node.select_child()
+            search_path.append(node)
+        value = node.state.result()
+        if value is None:
+            # game isn't over
+            value, action_probs = dummy_model_predict(node.state)
+            node.expand(action_probs=action_probs)
+        for node in search_path:
+            node.value += value
+            node.visits += 1
 
-print(root.state)
-for mv, child_node in root.children.items():
-    print(child_node.state, child_node.value)
+    # print(root.state)
+    # for mv, child_node in root.children.items():
+    #     print(child_node.state, child_node.value)
 
-treevis.vis(root)
+    treevis.vis(root, 'graph.png')
