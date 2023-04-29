@@ -44,7 +44,7 @@ class Node:
 
 if __name__ == '__main__':
 
-    NUM_SIMULATIONS = 13 if len(sys.argv) == 1 else int(sys.argv[1])
+    NUM_SIMULATIONS = 30 if len(sys.argv) == 1 else int(sys.argv[1])
 
     # initialize root
     root = Node(

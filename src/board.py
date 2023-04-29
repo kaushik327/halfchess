@@ -36,9 +36,10 @@ class Board():
         else:
             self.board = board
         self.white_to_move = white_to_move
+    
 
         self.legal_moves = self.__get_legal_moves(ignore_pins = future)
-
+        
     def __repr__(self):
         return '\n'.join('|' + '|'.join(row) + '|' for row in self.board) + '\n'
 
@@ -83,6 +84,8 @@ class Board():
         Player to move is switched. Move validity is NOT checked."""
         old_r, old_c, r, c = move
         state = deepcopy(self.board)
+        if old_r == r and old_c == c:
+            return Board(state, not self.white_to_move, future=future)
         state[r, c] = state[old_r, old_c]
         state[old_r, old_c] = ' '
 
@@ -100,7 +103,7 @@ class Board():
 
     def result(self):
         """Returns result of game.
-        2 if the game is still ongoing,
+        None if the game is still ongoing,
         0 for stalemate,
         -1 for black win,
         1 for white win."""

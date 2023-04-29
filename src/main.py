@@ -1,4 +1,5 @@
-"""Modules providing implementation of half-chess board, with legal moves and results."""
+"""Main file"""
+
 import board
 
 if __name__ == '__main__':
