@@ -12,8 +12,9 @@ def vis(root, filename=None):
     while queue:
         curr = queue.pop(0)
         for action, child in curr.children.items():
-            G.add_edge(curr, child, action=action)
-            queue.append(child)
+            if child.visits > 0:
+                G.add_edge(curr, child, action=action)
+                queue.append(child)
 
     plt.figure(figsize=(12, 12))
     pos = nx.nx_agraph.graphviz_layout(G, prog='twopi')
