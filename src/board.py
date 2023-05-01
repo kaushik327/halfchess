@@ -36,10 +36,8 @@ class Board():
         else:
             self.board = board
         self.white_to_move = white_to_move
-    
-
         self.legal_moves = self.__get_legal_moves(ignore_pins = future)
-        
+
     def __repr__(self):
         return '\n'.join('|' + '|'.join(row) + '|' for row in self.board) + '\n'
 
@@ -54,46 +52,45 @@ class Board():
         if self.white_to_move:
             for r, c in product(range(8), range(4)):
                 if self.board[r, c] == 'P':
-                    moves += self.__legal_moves_pawn(r, c, True)
+                    moves += self.__legal_moves_pawn(r, c)
                 elif self.board[r, c] == 'N':
-                    moves += self.__legal_moves_knight(r, c, True)
+                    moves += self.__legal_moves_knight(r, c)
                 elif self.board[r, c] == 'R':
-                    moves += self.__legal_moves_rook(r, c, True)
+                    moves += self.__legal_moves_rook(r, c)
                 elif self.board[r, c] == 'B':
-                    moves += self.__legal_moves_bishop(r, c, True)
+                    moves += self.__legal_moves_bishop(r, c)
                 elif self.board[r, c] == 'K':
-                    moves += self.__legal_moves_king(r, c, True)
+                    moves += self.__legal_moves_king(r, c)
         else:
             for r, c in product(range(8), range(4)):
                 if self.board[r, c] == 'p':
-                    moves += self.__legal_moves_pawn(r, c, False)
+                    moves += self.__legal_moves_pawn(r, c)
                 elif self.board[r, c] == 'n':
-                    moves += self.__legal_moves_knight(r, c, False)
+                    moves += self.__legal_moves_knight(r, c)
                 elif self.board[r, c] == 'r':
-                    moves += self.__legal_moves_rook(r, c, False)
+                    moves += self.__legal_moves_rook(r, c)
                 elif self.board[r, c] == 'b':
-                    moves += self.__legal_moves_bishop(r, c, False)
+                    moves += self.__legal_moves_bishop(r, c)
                 elif self.board[r, c] == 'k':
-                    moves += self.__legal_moves_king(r, c, False)
+                    moves += self.__legal_moves_king(r, c)
         return moves if ignore_pins else [m for m in moves if not self.__in_check_after_move(m)]
 
-    def make_move(self, move: tuple[int, int, int, int], future=False):
+    def make_move(self, old_r, old_c, r, c, prom_r=None, prom_c=None, future=False):
         """NOT IN-PLACE; RETURNS NEW BOARD.
         Input move should be formatted as (old_row, old_col, new_row, new_col).
         Piece from [old_row, old_col] is moved to [new_row, new_col], leaving a space in its place.
         Player to move is switched. Move validity is NOT checked."""
-        old_r, old_c, r, c = move
+        
         state = deepcopy(self.board)
         if old_r == r and old_c == c:
             return Board(state, not self.white_to_move, future=future)
         state[r, c] = state[old_r, old_c]
         state[old_r, old_c] = ' '
 
-        # TODO: upside down pawns
-        if r == 0 and state[r, c] == 'P':
-            state[r, c] = 'R'
-        if r == 7 and state[r, c] == 'p':
-            state[r, c] = 'r'
+        if r == 0 and state[r, c] == 'P' or r == 7 and state[r, c] == 'p':
+            state[r, c] = ' '
+            if prom_r is not None and prom_c is not None:
+                state[prom_r, prom_c] = ' '
 
         new_board = Board(state, not self.white_to_move, future=future)
         return new_board
@@ -118,29 +115,47 @@ class Board():
         return 1
 
     def __in_check_after_move(self, move: tuple[int, int, int, int]):
-        post_board = self.make_move(move, future=True)
-        for _, _, r, c in post_board.legal_moves:
-            if post_board.board[r, c] == ('k' if post_board.white_to_move else 'K'):
+        post_board = self.make_move(*move, future=True)
+        for lm in post_board.legal_moves:
+            if post_board.board[lm[2], lm[3]] == ('k' if post_board.white_to_move else 'K'):
                 return True
         return False
 
-    def __legal_moves_pawn(self, row: int, col: int, is_white: bool):
-        if row == 0 and is_white or row == 7 and not is_white:
+    def __legal_moves_pawn(self, row: int, col: int):
+        if row == 0 and self.white_to_move or row == 7 and not self.white_to_move:
             return []
         moves = []
-        can_capture = self.BLACK_PIECES if is_white else self.WHITE_PIECES
-        r = -1 if is_white else 1
+        can_capture = self.BLACK_PIECES if self.white_to_move else self.WHITE_PIECES
+
+        capturable_coords = []
+        if row == 1 and self.white_to_move or row == 6 and not self.white_to_move:
+            for r, c in product(range(8), range(4)):
+                if self.board[r, c] in can_capture and self.board[r, c] not in 'Kk':
+                    capturable_coords.append((r, c))
+
+        r = -1 if self.white_to_move else 1
         if self.board[row + r, col] == ' ':
             moves.append((row, col, row + r, col))
+            for cr, cc in capturable_coords:
+                moves.append((row, col, row + r, col, cr, cc))
+            
         if col != 0 and self.board[row + r, col - 1] in can_capture:
             moves.append((row, col, row + r, col - 1))
+            for cr, cc in capturable_coords:
+                if cr != row + r and cc != col - 1:
+                    moves.append((row, col, row + r, col - 1, cr, cc))
+
         if col != 3 and self.board[row + r, col + 1] in can_capture:
             moves.append((row, col, row + r, col + 1))
+            for cr, cc in capturable_coords:
+                if cr != row + r and cc != col + 1:
+                    moves.append((row, col, row + r, col + 1, cr, cc))
+
         return moves
 
-    def __legal_moves_king(self, row: int, col: int, is_white: bool):
+    def __legal_moves_king(self, row: int, col: int):
         moves = []
-        cannot_capture = self.WHITE_PIECES if is_white else self.BLACK_PIECES
+        cannot_capture = self.WHITE_PIECES if self.white_to_move else self.BLACK_PIECES
         for r, c in product((-1, 0, 1), (-1, 0, 1)):
             if (r != 0 or c != 0) \
                 and self.__is_valid(row + r, col + c) \
@@ -148,18 +163,18 @@ class Board():
                 moves.append((row, col, row + r, col + c))
         return moves
 
-    def __legal_moves_knight(self, row: int, col: int, is_white: bool):
+    def __legal_moves_knight(self, row: int, col: int):
         moves = []
-        cannot_capture = self.WHITE_PIECES if is_white else self.BLACK_PIECES
+        cannot_capture = self.WHITE_PIECES if self.white_to_move else self.BLACK_PIECES
         for r, c in chain(product((1, -1), (2, -2)), product((2, -2), (1, -1))):
             if self.__is_valid(row + r, col + c) and \
                 self.board[row + r, col + c] not in cannot_capture:
                 moves.append((row, col, row + r, col + c))
         return moves
 
-    def __legal_moves_rook(self, row: int, col: int, is_white: bool):
+    def __legal_moves_rook(self, row: int, col: int):
         moves = []
-        cannot_capture = self.WHITE_PIECES if is_white else self.BLACK_PIECES
+        cannot_capture = self.WHITE_PIECES if self.white_to_move else self.BLACK_PIECES
         # Downward moves
         for r in range(row + 1, 8):
             if self.board[r, col] not in cannot_capture:
@@ -186,9 +201,9 @@ class Board():
                 break
         return moves
 
-    def __legal_moves_bishop(self, row: int, col: int, is_white: bool):
+    def __legal_moves_bishop(self, row: int, col: int):
         moves = []
-        cannot_capture = self.WHITE_PIECES if is_white else self.BLACK_PIECES
+        cannot_capture = self.WHITE_PIECES if self.white_to_move else self.BLACK_PIECES
         # Down right
         i = 1
         while self.__is_valid(row + i, col + i):

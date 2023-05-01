@@ -1,15 +1,27 @@
 """Main file"""
 
 import board
+import numpy as np
 
 if __name__ == '__main__':
-    b = board.Board()
+    b = board.Board(
+        board=np.array([
+            [' ', 'b', ' ', ' '],
+            ['P', ' ', ' ', ' '],
+            [' ', 'K', ' ', ' '],
+            [' ', ' ', 'N', ' '],
+            [' ', ' ', ' ', ' '],
+            [' ', ' ', 'r', ' '],
+            [' ', 'k', ' ', ' '],
+            [' ', ' ', ' ', ' '],
+        ]),
+        white_to_move=True)
 
     while b.result() is None:
         print(b)
         print('Material:', b.material_advantage())
         print(b.legal_moves)
-        r, c, R, C = (int(i) for i in input().split())
-        b = b.make_move((r, c, R, C))
+        move = (int(i) for i in input().split())
+        b = b.make_move(*move)
     print(b)
     print('Result:', b.result())

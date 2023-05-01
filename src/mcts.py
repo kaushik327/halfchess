@@ -20,7 +20,7 @@ class Node:
     """Class representing a node in an MCTS tree."""
     def __init__(self, prior, state: board.Board):
         self.prior = prior
-        self.state = state # contains turn and state
+        self.state = state # contains turn and board
         self.children = {}
         self.value = 0
         self.visits = 0
@@ -31,7 +31,7 @@ class Node:
             if move in action_probs and action_probs[move] > 0:
                 self.children[move] = Node(
                     prior = action_probs[move],
-                    state = self.state.make_move(move)
+                    state = self.state.make_move(*move)
                 )
     
     def select_child(self):
