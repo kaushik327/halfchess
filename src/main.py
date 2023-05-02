@@ -4,7 +4,7 @@ import board
 import numpy as np
 
 if __name__ == '__main__':
-    b = board.Board(
+    b = board.HalfChessBoard(
         board=np.array([
             [' ', 'b', ' ', ' '],
             ['P', ' ', ' ', ' '],

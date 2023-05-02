@@ -4,7 +4,7 @@ from itertools import chain, product
 from copy import deepcopy
 import numpy as np
 
-class Board():
+class HalfChessBoard():
     """Class representing the board's state. Also provides legal moves in position."""
 
     WHITE_PIECES = 'RNKBP'
@@ -21,7 +21,7 @@ class Board():
                     'k': 0,
                     ' ': 0}
 
-    def __init__(self, board=None, white_to_move=True, future=False):
+    def __init__(self, board=None, white_to_move=True, ignore_pins=False):
         if board is None:
             self.board = np.array([
                 ['r', 'n', 'k', 'b'],
@@ -36,7 +36,9 @@ class Board():
         else:
             self.board = board
         self.white_to_move = white_to_move
-        self.legal_moves = self.__get_legal_moves(ignore_pins = future)
+        self.ignore_pins = ignore_pins
+        self.legal_moves = []
+        self.legal_moves = self.__get_legal_moves()
 
     def __repr__(self):
         return '\n'.join('|' + '|'.join(row) + '|' for row in self.board) + '\n'
@@ -44,7 +46,7 @@ class Board():
     def __is_valid(self, row: int, col: int):
         return 0 <= row < 8 and 0 <= col < 4
 
-    def __get_legal_moves(self, ignore_pins = False):
+    def __get_legal_moves(self):
         """Gives array of legal moves in position.
         Each move is formatted (old_row, old_col, new_row, new_col).
         """
@@ -73,17 +75,27 @@ class Board():
                     moves += self.__legal_moves_bishop(r, c)
                 elif self.board[r, c] == 'k':
                     moves += self.__legal_moves_king(r, c)
-        return moves if ignore_pins else [m for m in moves if not self.__in_check_after_move(m)]
+        if self.ignore_pins:
+            return moves
+        return [m for m in moves if not self.__in_check_after_move(m)]
 
     def make_move(self, old_r, old_c, r, c, prom_r=None, prom_c=None, future=False):
         """NOT IN-PLACE; RETURNS NEW BOARD.
         Input move should be formatted as (old_row, old_col, new_row, new_col).
         Piece from [old_row, old_col] is moved to [new_row, new_col], leaving a space in its place.
-        Player to move is switched. Move validity is NOT checked."""
-        
+        Player to move is switched. Move validity is checked."""
+
+        if self.legal_moves:
+            if prom_r is not None and prom_c is not None:
+                if (old_r, old_c, r, c, prom_r, prom_c) not in self.legal_moves:
+                    raise ValueError('invalid move')
+            else:
+                if (old_r, old_c, r, c) not in self.legal_moves:
+                    raise ValueError('invalid move')
+
         state = deepcopy(self.board)
         if old_r == r and old_c == c:
-            return Board(state, not self.white_to_move, future=future)
+            return HalfChessBoard(state, not self.white_to_move, ignore_pins=future)
         state[r, c] = state[old_r, old_c]
         state[old_r, old_c] = ' '
 
@@ -92,7 +104,7 @@ class Board():
             if prom_r is not None and prom_c is not None:
                 state[prom_r, prom_c] = ' '
 
-        new_board = Board(state, not self.white_to_move, future=future)
+        new_board = HalfChessBoard(state, not self.white_to_move, ignore_pins=future)
         return new_board
 
     def __in_check(self):
@@ -114,10 +126,11 @@ class Board():
             return -1
         return 1
 
-    def __in_check_after_move(self, move: tuple[int, int, int, int]):
+    def __in_check_after_move(self, move):
         post_board = self.make_move(*move, future=True)
-        for lm in post_board.legal_moves:
-            if post_board.board[lm[2], lm[3]] == ('k' if post_board.white_to_move else 'K'):
+        king = 'k' if post_board.white_to_move else 'K'
+        for legal_move in post_board.legal_moves:
+            if post_board.board[legal_move[2], legal_move[3]] == king:
                 return True
         return False
 
@@ -136,20 +149,20 @@ class Board():
         r = -1 if self.white_to_move else 1
         if self.board[row + r, col] == ' ':
             moves.append((row, col, row + r, col))
-            for cr, cc in capturable_coords:
-                moves.append((row, col, row + r, col, cr, cc))
-            
+            for cap_r, cap_c in capturable_coords:
+                moves.append((row, col, row + r, col, cap_r, cap_c))
+
         if col != 0 and self.board[row + r, col - 1] in can_capture:
             moves.append((row, col, row + r, col - 1))
-            for cr, cc in capturable_coords:
-                if cr != row + r and cc != col - 1:
-                    moves.append((row, col, row + r, col - 1, cr, cc))
+            for cap_r, cap_c in capturable_coords:
+                if cap_r != row + r and cap_c != col - 1:
+                    moves.append((row, col, row + r, col - 1, cap_r, cap_c))
 
         if col != 3 and self.board[row + r, col + 1] in can_capture:
             moves.append((row, col, row + r, col + 1))
-            for cr, cc in capturable_coords:
-                if cr != row + r and cc != col + 1:
-                    moves.append((row, col, row + r, col + 1, cr, cc))
+            for cap_r, cap_c in capturable_coords:
+                if cap_r != row + r and cap_c != col + 1:
+                    moves.append((row, col, row + r, col + 1, cap_r, cap_c))
 
         return moves
 
