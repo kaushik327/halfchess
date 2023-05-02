@@ -1,10 +1,10 @@
 """Main file"""
 
-import board
+import half_chess_board
 import numpy as np
 
 if __name__ == '__main__':
-    b = board.HalfChessBoard(
+    b = half_chess_board.HalfChessBoard(
         board=np.array([
             [' ', 'b', ' ', ' '],
             ['P', ' ', ' ', ' '],
