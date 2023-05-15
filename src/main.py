@@ -1,7 +1,7 @@
 """Main file"""
 
-import half_chess_board
 import numpy as np
+import half_chess_board
 
 if __name__ == '__main__':
     b = half_chess_board.HalfChessBoard(

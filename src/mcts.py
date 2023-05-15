@@ -1,3 +1,5 @@
+"""Module providing tools and behavior for MCTS tree search"""
+
 import math
 import sys
 import numpy as np

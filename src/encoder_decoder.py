@@ -1,28 +1,30 @@
+
+
 from itertools import product
 import numpy as np
 from half_chess_board import HalfChessBoard
 
 def encode_board(board: HalfChessBoard):
     state = board.board
-    encoded = np.zeros([8, 4, 11]).astype(int)
+    encoded = np.zeros([11, 8, 4]).astype(int)
     encoder_dict = {'R': 0, 'N': 1, 'B': 2, 'P': 3, 'K': 4,
                     'r': 5, 'n': 6, 'b': 7, 'p': 8, 'k': 9}
     for r, c in product(range(8), range(4)):
         if state[r, c] != ' ':
-            encoded[r][c][encoder_dict[state[r, c]]] = 1
+            encoded[encoder_dict[state[r, c]]][r][c] = 1
     if board.white_to_move:
-        encoded[:, :, 10] = 1
+        encoded[10, :, :] = 1
     return encoded
 
 def decode_board(encoded):
     state = np.full([8, 4], ' ')
     decoder_dict = 'RNBPKrnbpk'
-    for r, c, piece in product(range(8), range(4), range(10)):
-        if encoded[r, c, piece] == 1:
+    for piece, r, c in product(range(10), range(8), range(4)):
+        if encoded[piece, r, c] == 1:
             state[r, c] = decoder_dict[piece]
     return HalfChessBoard(
         board = state,
-        white_to_move = encoded[0, 0, 10] == 1
+        white_to_move = encoded[10, 0, 0] == 1
     )
 
 def encode_action(old_row, old_col, new_row, new_col, prom_row=None, prom_col=None):
@@ -42,6 +44,7 @@ def encode_action(old_row, old_col, new_row, new_col, prom_row=None, prom_col=No
     encoded = encoded * 2 + color
 
     return encoded + 1024
+
 
 def decode_action(encoded):
     if encoded < 1024:
@@ -73,5 +76,9 @@ if __name__ == '__main__':
             [' ', ' ', 'B', ' '],
         ]),
         white_to_move=False)
+
+    print(b)
+    print(encode_board(b))
+
     for lm in b.legal_moves:
         assert(lm == decode_action(encode_action(*lm)))

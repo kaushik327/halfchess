@@ -1,6 +1,6 @@
-"""Module providing tools to make nested for loops easier to read"""
-from itertools import chain, product
+"""Implementation of object representing the half-chess board."""
 
+from itertools import chain, product
 from copy import deepcopy
 import numpy as np
 
@@ -139,6 +139,8 @@ class HalfChessBoard():
             return []
         moves = []
         can_capture = self.BLACK_PIECES if self.white_to_move else self.WHITE_PIECES
+
+        # TODO: if a pawn can take out another piece, it has to
 
         capturable_coords = []
         if row == 1 and self.white_to_move or row == 6 and not self.white_to_move:
