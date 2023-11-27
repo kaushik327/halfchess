@@ -1,18 +1,18 @@
 """Main file"""
 
 import numpy as np
-import half_chess_board
+from half_chess_board import HalfChessBoard, Move
 
 if __name__ == '__main__':
-    b = half_chess_board.HalfChessBoard(
+    b = HalfChessBoard(
         board=np.array([
-            [' ', 'b', ' ', ' '],
-            ['P', ' ', ' ', ' '],
+            [' ', 'k', ' ', ' '],
+            [' ', ' ', ' ', 'B'],
             [' ', 'K', ' ', ' '],
             [' ', ' ', 'N', ' '],
             [' ', ' ', ' ', ' '],
-            [' ', ' ', 'r', ' '],
-            [' ', 'k', ' ', ' '],
+            [' ', ' ', ' ', ' '],
+            [' ', ' ', ' ', ' '],
             [' ', ' ', ' ', ' '],
         ]),
         white_to_move=True)
@@ -21,7 +21,9 @@ if __name__ == '__main__':
         print(b)
         print('Material:', b.material_advantage())
         print(b.legal_moves)
-        move = (int(i) for i in input().split())
-        b = b.make_move(*move)
+        move = Move(*(int(i) for i in input().split()))
+        print(move)
+        b = b.make_move(move)
+        
     print(b)
     print('Result:', b.result())

@@ -1,10 +1,9 @@
-
-
 from itertools import product
 import numpy as np
-from half_chess_board import HalfChessBoard
+import numpy.typing as npt
+from half_chess_board import HalfChessBoard, Move
 
-def encode_board(board: HalfChessBoard):
+def encode_board(board: HalfChessBoard) -> npt.NDArray[np.int_]:
     state = board.board
     encoded = np.zeros([11, 8, 4]).astype(int)
     encoder_dict = {'R': 0, 'N': 1, 'B': 2, 'P': 3, 'K': 4,
@@ -16,7 +15,7 @@ def encode_board(board: HalfChessBoard):
         encoded[10, :, :] = 1
     return encoded
 
-def decode_board(encoded):
+def decode_board(encoded: npt.NDArray[np.int_]) -> HalfChessBoard:
     state = np.full([8, 4], ' ')
     decoder_dict = 'RNBPKrnbpk'
     for piece, r, c in product(range(10), range(8), range(4)):
@@ -27,7 +26,9 @@ def decode_board(encoded):
         white_to_move = encoded[10, 0, 0] == 1
     )
 
-def encode_action(old_row, old_col, new_row, new_col, prom_row=None, prom_col=None):
+def encode_action(move: Move) -> int:
+    old_row, old_col, new_row, new_col, prom_row, prom_col = move
+
     if prom_row is None or prom_col is None:
         encoded = new_col
         encoded = encoded * 8 + new_row
@@ -46,13 +47,13 @@ def encode_action(old_row, old_col, new_row, new_col, prom_row=None, prom_col=No
     return encoded + 1024
 
 
-def decode_action(encoded):
+def decode_action(encoded: int) -> Move:
     if encoded < 1024:
         encoded, old_row = divmod(encoded, 8)
         encoded, old_col = divmod(encoded, 4)
         encoded, new_row = divmod(encoded, 8)
         encoded, new_col = divmod(encoded, 4)
-        return (old_row, old_col, new_row, new_col)
+        return Move(old_row, old_col, new_row, new_col)
     encoded -= 1024
     encoded, color = divmod(encoded, 2)
     encoded, column_shift = divmod(encoded, 3)
@@ -61,7 +62,7 @@ def decode_action(encoded):
     encoded, prom_col = divmod(encoded, 4)
     old_row, new_row = (6, 7) if color == 0 else (1, 0)
     new_col = old_col + column_shift - 1
-    return (old_row, old_col, new_row, new_col, prom_row, prom_col)
+    return Move(old_row, old_col, new_row, new_col, prom_row, prom_col)
 
 if __name__ == '__main__':
     b = HalfChessBoard(
@@ -81,4 +82,4 @@ if __name__ == '__main__':
     print(encode_board(b))
 
     for lm in b.legal_moves:
-        assert(lm == decode_action(encode_action(*lm)))
+        assert(lm == decode_action(encode_action(lm)))

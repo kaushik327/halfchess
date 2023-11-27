@@ -3,7 +3,7 @@
 import math
 import sys
 import numpy as np
-import half_chess_board
+from half_chess_board import HalfChessBoard, Move
 import treevis
 
 def ucb_score(parent, child):
@@ -11,7 +11,7 @@ def ucb_score(parent, child):
     value_score = 0 if child.visits == 0 else (child.value / child.visits)
     return value_score + prior_score
 
-def dummy_model_predict(state: half_chess_board.HalfChessBoard):
+def dummy_model_predict(state: HalfChessBoard):
     """Returns value and dictionary of moves to action probabilities."""
     value_head = 0
     num_moves = len(state.legal_moves)
@@ -20,7 +20,7 @@ def dummy_model_predict(state: half_chess_board.HalfChessBoard):
 
 class Node:
     """Class representing a node in an MCTS tree."""
-    def __init__(self, prior, state: half_chess_board.HalfChessBoard):
+    def __init__(self, prior, state: HalfChessBoard):
         self.prior = prior
         self.state = state # contains turn and board
         self.children = {}
@@ -33,7 +33,7 @@ class Node:
             if move in action_probs and action_probs[move] > 0:
                 self.children[move] = Node(
                     prior = action_probs[move],
-                    state = self.state.make_move(*move)
+                    state = self.state.make_move(move)
                 )
     
     def select_child(self):
@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # initialize root
     root = Node(
         prior = 0,
-        state = half_chess_board.HalfChessBoard(
+        state = HalfChessBoard(
             board=np.array([
                 [' ', 'k', ' ', ' '],
                 [' ', ' ', ' ', 'B'],
